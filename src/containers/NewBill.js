@@ -36,7 +36,7 @@ export default class NewBill {
       this.document.querySelector(`input[data-testid="file"]`).value = "";
     }
   }
-
+/* istanbul ignore next */
   handleChangeFileBis = (file, fileName) => {
     if(this.firestore) {
       this.firestore
@@ -74,6 +74,7 @@ export default class NewBill {
   }
 
   // not need to cover this function by tests
+  /* istanbul ignore next */
   createBill = (bill) => {
     if (this.firestore) {
       this.firestore
