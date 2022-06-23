@@ -1,89 +1,96 @@
-
-import { ROUTES_PATH } from '../constants/routes.js'
-import Logout from "./Logout.js"
+import { ROUTES_PATH } from "../constants/routes.js";
+import Logout from "./Logout.js";
 
 export default class NewBill {
-  constructor({ document, onNavigate, firestore, localStorage }) {
-    this.document = document
-    this.onNavigate = onNavigate
-    this.firestore = firestore
-    const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
-    formNewBill.addEventListener("submit", this.handleSubmit)
-    const file = this.document.querySelector(`input[data-testid="file"]`)
-    file.addEventListener("change", this.handleChangeFile)
-    this.fileUrl = null
-    this.fileName = null
-    new Logout({ document, localStorage, onNavigate })
+  constructor({ document, onNavigate, store, localStorage }) {
+    this.document = document;
+    this.onNavigate = onNavigate;
+    this.store = store;
+    const formNewBill = this.document.querySelector(
+      `form[data-testid="form-new-bill"]`
+    );
+    formNewBill.addEventListener("submit", this.handleSubmit);
+    const file = this.document.querySelector(`input[data-testid="file"]`);
+    file.addEventListener("change", this.handleChangeFile);
+    this.fileUrl = null;
+    this.fileName = null;
+    this.billId = null;
+    new Logout({ document, localStorage, onNavigate });
   }
+  
+  handleChangeFile = (e) => {
+    e.preventDefault();
+    const inputFile = this.document.querySelector(`input[data-testid="file"]`);
+    const file = inputFile.files[0];
+    const filePath = e.target.value.split(/\\/g);
+    const fileName = filePath[filePath.length - 1];
+    const fileExtension = fileName.split(".").pop();
+    const formData = new FormData();
+    const email = JSON.parse(localStorage.getItem("user")).email;
+    const formats = ["jpg", "jpeg", "png"];
 
-  alertExtension = e => {
-    window.alert('Choose a jpg, jpeg, or png format')
-  }
-
-  handleChangeFile = e => {
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    const extensionIndex = file.name.lastIndexOf('.')
-    const slicedFileName = file.name.slice(extensionIndex+1)
-    const acceptedExtensions = ['jpeg','jpg','png']
-    const filePath = e.target.value.split(/\\/g)
-    const fileName = filePath[filePath.length-1]
-    if(acceptedExtensions.includes(slicedFileName)) {
-      if(filePath) {
-        this.handleChangeFileBis(file, fileName)
-      }
+    // extension checking
+    if (formats.includes(fileExtension)) {
+      formData.append("file", file);
+      formData.append("email", email);
+      this.store.bills().create({
+        data: formData,
+        headers: {
+          noContentType: true
+        }
+      }).then(({ fileUrl, key }) => {
+        this.billId = key,
+        this.fileUrl = fileUrl,
+        this.fileName = fileName
+      }).catch(console.log)
     } else {
-      this.alertExtension()
-      this.document.querySelector(`input[data-testid="file"]`).value = "";
+      inputFile.value = "";
+      return alert(
+        "Ce type de fichier n'est pas supporté. Veuillez choisir un fichier en format .jpg .jpeg ou .png"
+      );
     }
-  }
-/* istanbul ignore next */
-  handleChangeFileBis = (file, fileName) => {
-    if(this.firestore) {
-      this.firestore
-          .storage
-          .ref(`justificatifs/${fileName}`)
-          .put(file)
-          .then(snapshot => snapshot.ref.getDownloadURL())
-          .then(url => {
-            this.fileUrl = url
-            this.fileName = fileName
-          })
-          .catch(error => error)
-    }
+  };
 
-  }
-  handleSubmit = e => {
-    e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
-    const email = JSON.parse(localStorage.getItem("user")).email
+  handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(
+      'e.target.querySelector(`input[data-testid="datepicker"]`).value',
+      e.target.querySelector(`input[data-testid="datepicker"]`).value
+    );
+    const email = JSON.parse(localStorage.getItem("user")).email;
     const bill = {
       email,
       type: e.target.querySelector(`select[data-testid="expense-type"]`).value,
-      name:  e.target.querySelector(`input[data-testid="expense-name"]`).value,
-      amount: parseInt(e.target.querySelector(`input[data-testid="amount"]`).value),
-      date:  e.target.querySelector(`input[data-testid="datepicker"]`).value,
+      name: e.target.querySelector(`input[data-testid="expense-name"]`).value,
+      amount: parseInt(
+        e.target.querySelector(`input[data-testid="amount"]`).value
+      ),
+      date: e.target.querySelector(`input[data-testid="datepicker"]`).value,
       vat: e.target.querySelector(`input[data-testid="vat"]`).value,
-      pct: parseInt(e.target.querySelector(`input[data-testid="pct"]`).value) || 20,
-      commentary: e.target.querySelector(`textarea[data-testid="commentary"]`).value,
+      pct:
+        parseInt(e.target.querySelector(`input[data-testid="pct"]`).value) ||
+        20,
+      commentary: e.target.querySelector(`textarea[data-testid="commentary"]`)
+        .value,
       fileUrl: this.fileUrl,
       fileName: this.fileName,
-      status: 'pending'
-    }
-    this.createBill(bill)
-    this.onNavigate(ROUTES_PATH['Bills'])
-  }
+      status: "pending",
+    };
+    this.updateBill(bill);
+    this.onNavigate(ROUTES_PATH["Bills"]);
+  };
 
-  // not need to cover this function by tests
   /* istanbul ignore next */
-  createBill = (bill) => {
-    if (this.firestore) {
-      this.firestore
-      .bills()
-      .add(bill)
-      .then(() => {
-        this.onNavigate(ROUTES_PATH['Bills'])
-      })
-      .catch(error => error)
+  // not need to cover this function by tests
+  updateBill = (bill) => {
+    if (this.store) {
+      this.store
+        .bills()
+        .update({ data: JSON.stringify(bill), selector: this.billId })
+        .then(() => {
+          this.onNavigate(ROUTES_PATH["Bills"]);
+        })
+        .catch((error) => console.error(error));
     }
-  }
+  };
 }
