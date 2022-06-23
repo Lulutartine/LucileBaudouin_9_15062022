@@ -26,6 +26,7 @@
        expect(screen.getByTestId("form-employee")).toBeTruthy();
      });
    });
+ 
    describe("When I do fill fields in incorrect format and I click on employee button Login In", () => {
      test("Then It should renders Login page", () => {
        document.body.innerHTML = LoginUI();
@@ -94,7 +95,7 @@
        });
  
        const handleSubmit = jest.fn(login.handleSubmitEmployee);
-       login.login = jest.fn().mockResolvedValue({});
+       login.login = jest.fn().mockResolvedValue({})
        form.addEventListener("submit", handleSubmit);
        fireEvent.submit(form);
        expect(handleSubmit).toHaveBeenCalled();
@@ -114,7 +115,9 @@
        expect(screen.getAllByText("Mes notes de frais")).toBeTruthy();
      });
    });
+ });
  
+ describe("Given that I am a user on login page", () => {
    describe("When I do not fill fields and I click on admin button Login In", () => {
      test("Then It should renders Login page", () => {
        document.body.innerHTML = LoginUI();
@@ -133,6 +136,7 @@
        expect(screen.getByTestId("form-admin")).toBeTruthy();
      });
    });
+ 
    describe("When I do fill fields in incorrect format and I click on admin button Login In", () => {
      test("Then it should renders Login page", () => {
        document.body.innerHTML = LoginUI();
@@ -153,6 +157,7 @@
        expect(screen.getByTestId("form-admin")).toBeTruthy();
      });
    });
+ 
    describe("When I do fill fields in correct format and I click on admin button Login In", () => {
      test("Then I should be identified as an HR admin in app", () => {
        document.body.innerHTML = LoginUI();
@@ -175,7 +180,7 @@
  
        const form = screen.getByTestId("form-admin");
  
-       // localStorage doit être rempli avec des données de formulaire
+       // localStorage should be populated with form data
        Object.defineProperty(window, "localStorage", {
          value: {
            getItem: jest.fn(() => null),
@@ -184,7 +189,7 @@
          writable: true,
        });
  
-       // nous devons simuler la navigation pour la tester
+       // we have to mock navigation to test it
        const onNavigate = (pathname) => {
          document.body.innerHTML = ROUTES({ pathname });
        };
@@ -222,4 +227,4 @@
        expect(screen.queryByText("Validations")).toBeTruthy();
      });
    });
- });
+ }); 

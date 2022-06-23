@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "ui-ux-test-report": "jest src/__tests__/Actions.js src/__tests__/Bills.js src/__tests__/Dashboard.js src/__tests__/DashboardFormUI.js src/__tests__/ErrorPage.js src/__tests__/LoadingPage.js src/__tests__/Login.js src/__tests__/Logout.js src/__tests__/NewBill.js src/__tests__/VerticalLayout.js --noStackTrace --silent",
     "test": "jest --coverage --noStackTrace --silent"
   },
   "jest": {
